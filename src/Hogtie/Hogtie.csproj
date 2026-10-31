@@ -5,10 +5,15 @@
     <AssemblyName>Hogtie</AssemblyName>
     <RootNamespace>Hogtie</RootNamespace>
     <Version>0.1.0</Version>
-    <Description>Hogtie - SecretFlasherManaka BepInEx IL2CPP mod</Description>
+    <Description>Hogtie - a hogtie device for SecretFlasherManaka (BepInEx IL2CPP)</Description>
     <!-- Compiles against RestraintHub (build/SfmMod.targets); players install it separately. -->
     <SfmUsesRestraintHub>true</SfmUsesRestraintHub>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The model, exported from Hogtie.blend by tools/export_model.py (see docs/Hogtie.md). -->
+    <EmbeddedResource Include="assets\hogtie.htm" LogicalName="Hogtie.assets.hogtie.htm" />
+  </ItemGroup>
 
   <!-- Compile the shared SfmKit sources into this DLL (remove this line if you do not use it). -->
   <Import Project="$(RepoRoot)build\SfmKit.props" />

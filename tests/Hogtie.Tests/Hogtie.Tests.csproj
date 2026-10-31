@@ -11,5 +11,7 @@
   <ItemGroup>
     <Compile Include="..\..\src\Hogtie\Logic\**\*.cs" Link="Logic\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\lib\SfmKit\Pure\**\*.cs" Link="SfmKit.Pure\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\src\Hogtie\assets\hogtie.htm" Link="hogtie.htm" CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('..\..\src\Hogtie\assets\hogtie.htm')" />
   </ItemGroup>
 </Project>
