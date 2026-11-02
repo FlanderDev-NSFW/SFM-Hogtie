@@ -91,10 +91,29 @@ namespace Hogtie
         [HideFromIl2Cpp]
         internal void OnRingChosen()
         {
-            string result = Lock(false);
-            if (_locked) GameUi.PlaySe(InGameSoundManager.SeType.CommonEquip);
-            else GameUi.Message("Can't use the hogtie here: " + (result.StartsWith("refused: ") ? result.Substring(9).Split(" (")[0] : result));
+            string why = PutOn();
+            if (why != null) GameUi.Message("Can't use the hogtie here: " + why);
         }
+
+        /// <summary>Hogtie her where she stands (the ring entry, or a mission through RestraintHub): null when it is closing, else
+        /// why not.</summary>
+        [HideFromIl2Cpp]
+        internal string PutOn()
+        {
+            string result = Lock(false);
+            if (!_locked) return Reason(result);
+            GameUi.PlaySe(InGameSoundManager.SeType.CommonEquip);
+            return null;
+        }
+
+        /// <summary>Whether <see cref="PutOn"/> would find room here (RestraintHub's CanPutOn): null = yes, else why not.</summary>
+        internal static string Check()
+        {
+            string result = Lock(false, true);
+            return result == "ok" ? null : Reason(result);
+        }
+
+        private static string Reason(string result) => result.StartsWith("refused: ") ? result.Substring(9).Split(" (")[0] : result;
 
         /// <summary>A save was loaded or a new game started: she starts free (being hogtied is not saved).</summary>
         [HideFromIl2Cpp]
@@ -203,15 +222,16 @@ namespace Hogtie
         /// <summary>Diagnostics: lock even where <see cref="LockHere"/> would refuse the spot (the reason is still reported).</summary>
         public static string LockForced() => Lock(true);
 
+        /// <summary>Hogtie her where she stands; <paramref name="check"/>: only find out whether it would work ("ok").</summary>
         [HideFromIl2Cpp]
-        private static string Lock(bool force)
+        private static string Lock(bool force, bool check = false)
         {
             try
             {
                 var c = Instance;
                 var player = PlayerController.Instance;
                 if (c == null || player == null || player.Pca == null || player.Pca.Animator == null) return "not in game";
-                if (c._locked) Release();
+                if (c._locked && !check) Release();
                 var anim = player.Pca.Animator;
                 if (!HogtiePoser.Measure(anim, out BodyDims body, out string problem)) return "refused: " + problem;
                 var prm = Params();
@@ -226,9 +246,10 @@ namespace Hogtie
                 string text = (spot.Ok ? (spot.Reason == null ? "ok" : "FORCED, would refuse: " + spot.Reason) : "refused: " + spot.Reason)
                               + " (floor '" + spot.Floor + "'); body spine " + F(body.Spine) + " thigh " + F(body.Thigh) + " shin " + F(body.Shin)
                               + " upper arm " + F(body.UpperArm) + " forearm " + F(body.Forearm) + " neck " + F(body.NeckLength) + "; " + c._fit;
-                Plugin.Logger.LogInfo("[SFM-ACCEPT] lock: " + text);
+                Plugin.Logger.LogInfo("[SFM-ACCEPT] " + (check ? "check: " : "lock: ") + text);
                 Status = text;
                 if (!spot.Ok) return text;
+                if (check) return "ok";
                 if (c._rig == null || !c._rig.Built)
                 {
                     c._rig = new HogtieRig(Model);

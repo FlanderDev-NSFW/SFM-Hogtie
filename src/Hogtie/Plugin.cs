@@ -11,12 +11,12 @@ using Hogtie.Logic;
 namespace Hogtie
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
-    [BepInDependency(Hub.Guid, "1.0.0")] // OnLoad / OnNewGame
+    [BepInDependency(Hub.Guid, "^1.1.0")] // OnLoad / OnNewGame; PutOn / CanPutOn / TakeOff (missions)
     public sealed class Plugin : BasePlugin
     {
         public const string PluginGuid = "FlanderDev.SFM.Hogtie";
         public const string PluginName = "Hogtie";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.2.0";
         private const string ModelResource = "Hogtie.assets.hogtie.htm";
 
         internal static ManualLogSource Logger;
@@ -75,6 +75,9 @@ namespace Hogtie
                 Blocks = () => RestraintHub.Blocks.Moving | RestraintHub.Blocks.Running | RestraintHub.Blocks.Crouching | RestraintHub.Blocks.Pee
                                | RestraintHub.Blocks.HandActions | RestraintHub.Blocks.PoseSkills,
                 OnChosen = () => HogtieController.Instance?.OnRingChosen(),
+                PutOn = () => HogtieController.Instance == null ? "not ready" : HogtieController.Instance.PutOn(),
+                CanPutOn = HogtieController.Check,
+                TakeOff = () => HogtieController.Release(),
                 Attempt = () => HogtieController.Instance == null ? 0f : HogtieController.Instance.Machine.Attempt,
             };
             Hub.Register(Entry);

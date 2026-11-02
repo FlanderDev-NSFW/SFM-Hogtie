@@ -114,6 +114,7 @@ the bridge's `game closeup bone:RightLowerArm~RightHand@0.85 --dist 0.2 --az 90 
   - F still frees her; the camera target goes back to 1.21 m.
 - Not yet tried in game: choosing it from the ring menu / a number key (same lock path as `LockHere`, plus the refusal message),
   other places, daylight.
+- L3 0.2.0 (2026-11-02, with RestraintHub 1.1.0 and the test missions - details in RestraintHub's `docs/RestraintHub.md`, L3 1.1.0): `CanPutOn` (placement with `check`: "something is in the way" indoors / at the intercom, ok on the street), put on by a mission (no struggling, 15 s): list "Hogtie [locked 0:11]", taken off by the timer.
 
 ## Open points
 - Model licence and credit (`LICENSE-MODELS`).
