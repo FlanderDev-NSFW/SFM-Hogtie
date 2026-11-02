@@ -4,6 +4,8 @@ A hogtie device for **Secret Flasher Manaka**: she hangs face down in a floor-st
 head up, her arms are cuffed behind her along the bar, and her ankles are pulled up to her hands at the post. The device is fitted to her
 body: scaled, cuffs sized to her limbs, the arm cuffs and the ankle bar moved to where she reaches.
 
+Model: ["Hogite Device"](https://smutba.se/project/7771b7b3-178b-4a89-816c-43dd097d9365/) by [Kryiat](https://smutba.se/user/60103/) ([CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)).
+
 ## Requirements
 - Secret Flasher Manaka (tested with v1.1.3)
 - BepInEx 6 for IL2CPP (tested with build 738)
@@ -34,7 +36,7 @@ Missions (Custom Missions v2) can put it on and lock it through RestraintHub: `R
 - Clothes are not measured: wide skirts and boots can hide the cuffs or show through the device.
 - The post stands between her thighs.
 
-Single-player / offline only. Code: MIT licence (`LICENSE.txt`). Model: see `LICENSE-MODELS.txt`.
+Single-player / offline only. Code: MIT licence (`LICENSE.txt`). Model: ["Hogite Device"](https://smutba.se/project/7771b7b3-178b-4a89-816c-43dd097d9365/) by Kryiat, CC BY-NC-ND 4.0 (smutba.se; details in `LICENSE-MODELS.txt`).
 
 ## Building from source
 - .NET SDK 8, and a copy of the game with BepInEx 6 IL2CPP started once: copy `Directory.Build.local.props.example` to

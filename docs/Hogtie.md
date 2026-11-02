@@ -117,7 +117,6 @@ the bridge's `game closeup bone:RightLowerArm~RightHand@0.85 --dist 0.2 --az 90 
 - L3 0.2.0 (2026-11-02, with RestraintHub 1.1.0 and the test missions - details in RestraintHub's `docs/RestraintHub.md`, L3 1.1.0): `CanPutOn` (placement with `check`: "something is in the way" indoors / at the intercom, ok on the street), put on by a mission (no struggling, 15 s): list "Hogtie [locked 0:11]", taken off by the timer.
 
 ## Open points
-- Model licence and credit (`LICENSE-MODELS`).
 - The arms: not tuned yet (they reach back through their cuffs from wherever her shoulders end up).
 - The post passes through the crotch / lower buttocks a little (`hips against the post` is met at 4.8 cm in front of the thigh
   joints; her buttocks reach further back).

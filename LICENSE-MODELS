@@ -1,10 +1,14 @@
 3D models and textures
 
 The 3D model used by this mod (src/Hogtie/assets/, also embedded in the mod's DLL)
-is other people's work. It was converted to the mod's own format for use in the game.
-The code of the mod is under the MIT licence (LICENSE); this file is about the model only.
+is other people's work, used under the Creative Commons licence its author chose.
+It was converted to the mod's own format for use in the game. The code of the mod
+is under the MIT licence (LICENSE); this file is about the model only.
 
 - Hogtie device (Hogtie)
-  "Hogtie device (obj)" by vadda-orca (XNALara download, DeviantArt) - as named in the
-  .blend's texture paths
-  TODO: source link, author's credit line and licence - to be confirmed before release.
+  "Hogite Device" by Kryiat (https://smutba.se/user/60103/)
+  https://smutba.se/project/7771b7b3-178b-4a89-816c-43dd097d9365/
+  Licence: CC BY-NC-ND 4.0
+
+Licence: CC BY-NC-ND 4.0 (Attribution-NonCommercial-NoDerivatives 4.0 International):
+  https://creativecommons.org/licenses/by-nc-nd/4.0/
