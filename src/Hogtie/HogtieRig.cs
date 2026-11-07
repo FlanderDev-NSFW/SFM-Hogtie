@@ -26,11 +26,14 @@ namespace Hogtie
 
         private NVector3 Pivot(ModelPart p) => _model.CuffOf(p)?.Anchor ?? NVector3.Zero;
 
-        public void Build(int layer)
+        /// <summary>Make the device's objects: under <paramref name="parent"/> (a placed device: goes with its map), else on its own
+        /// across maps.</summary>
+        public void Build(int layer, Transform parent = null)
         {
             Destroy();
             _root = new GameObject("Hogtie");
-            UnityEngine.Object.DontDestroyOnLoad(_root);
+            if (parent != null) _root.transform.SetParent(parent, false);
+            else UnityEngine.Object.DontDestroyOnLoad(_root);
             _root.layer = layer;
             _metal = MakeMaterial(FindHandcuffMaterial());
             foreach (var part in _model.Parts)

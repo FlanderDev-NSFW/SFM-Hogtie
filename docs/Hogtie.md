@@ -9,10 +9,16 @@ but off the floor. The collar holds her neck, the upper arms go back and up thro
 the bar in the wrist cuffs, the ankle cuffs hold her ankles - knees down behind the post, feet up to her hands - and the post
 stands between her thighs. Single-player/offline only.
 
-**Needs RestraintHub** (1.0.0+): ring entry (value 9600), number shortcuts, F routing, input blocking and conflicts are the hub's.
-Holds neck, arms, legs and the spot. Being hogtied is not saved: a load or new game starts free.
+**Needs RestraintHub** (2.0.0+): a placeable (`HogtieDevice`: placed from the panel, kept per map and in the save by the hub,
+"F Hogtie" at it) whose in-use wearable is `Hogtie` (worn list, F routing, input blocking, conflicts, missions). Holds neck, arms,
+legs and the spot. Being hogtied is not saved: a load or new game starts free.
 
-**Status 0.1.0:** first version, not released. The model's licence and credit are still open (`LICENSE-MODELS`).
+**2.0.0 (RestraintHub 2):** placed in front of her (`FindSpot`: the 1.x floor and room checks with the hips point 1.1 m ahead);
+its pose is her root's place (the hips' floor point, facing the way her head goes), so the device frame follows from her layout.
+`ShowPlaced` builds an empty rig for her body under the hub's root; F locks her at that frame (no new checks) and hides the empty
+rig while the fitted one is shown. Missions (`RtHub_Apply`) still hogtie her where she stands. The ring entry is gone.
+
+**Status 2.0.0:** usable, L3 (see Verification). Model: "Hogite Device" by Kryiat, CC BY-NC-ND 4.0 (`LICENSE-MODELS`).
 
 ## How it works
 - **The model** is the `hogtie-device` object of `Hogtie.blend` (one mesh of 24 loose parts, size shape keys per cuff), exported by
@@ -66,7 +72,7 @@ Holds neck, arms, legs and the spot. Being hogtied is not saved: a load or new g
 ## Config (`BepInEx/config/FlanderDev.SFM.Hogtie.cfg`)
 | Key | Default | Meaning |
 |---|---|---|
-| General.RingLabel | Hogtie | name of the ring entry |
+| General.RingLabel | Hogtie | name in the panel, at the device (F) and in the worn list (the key name is kept from 1.x) |
 | Unlock.AttemptSeconds | 4.5 | seconds of holding F per attempt |
 | Unlock.SuccessChance | 1 | chance an attempt frees her (failures add 0.02, like the game's handcuffs) |
 | Model.ClearanceCm | 0.4 | room between limbs and collar / cuffs (cm; -1 .. 5, applied at the next lock) |
@@ -112,9 +118,12 @@ the bridge's `game closeup bone:RightLowerArm~RightHand@0.85 --dist 0.2 --az 90 
     edge sat just past the drawn outline (at most ~0.5 cm too generous there).
   - From behind the whole device vanished (occlusion culling); fixed, visible from the same spot.
   - F still frees her; the camera target goes back to 1.21 m.
-- Not yet tried in game: choosing it from the ring menu / a number key (same lock path as `LockHere`, plus the refusal message),
-  other places, daylight.
+- Not yet tried in game: other places, daylight.
 - L3 0.2.0 (2026-11-02, with RestraintHub 1.1.0 and the test missions - details in RestraintHub's `docs/RestraintHub.md`, L3 1.1.0): `CanPutOn` (placement with `check`: "something is in the way" indoors / at the intercom, ok on the street), put on by a mission (no struggling, 15 s): list "Hogtie [locked 0:11]", taken off by the timer.
+- L3 2.0.0 (2026-11-07, RestraintHub 2.0.0 - details in its `docs/RestraintHub.md`, "L3 2.0.0 with the ported mods"): placing
+  refused in the apartment ("something is in the way (bed01)") and once on the street (flowers), placed on the street (empty device
+  with the game's circle, screenshot); F -> hogtied in it (fit logged as before, empty copy hidden, screenshot); F held -> free,
+  device back; kept through save + restart + load; picked up from the panel. Missions not re-tested (unchanged path).
 
 ## Open points
 - The arms: not tuned yet (they reach back through their cuffs from wherever her shoulders end up).

@@ -11,17 +11,19 @@ using Hogtie.Logic;
 namespace Hogtie
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
-    [BepInDependency(Hub.Guid, "^1.1.0")] // OnLoad / OnNewGame; PutOn / CanPutOn / TakeOff (missions)
+    [BepInDependency(Hub.Guid, "^2.0.0")] // RestraintHub 2: a placeable (the panel, U; F at the device), PutOn / TakeOff for missions
     public sealed class Plugin : BasePlugin
     {
         public const string PluginGuid = "FlanderDev.SFM.Hogtie";
         public const string PluginName = "Hogtie";
-        public const string PluginVersion = "0.2.0";
+        public const string PluginVersion = "2.0.0";
         private const string ModelResource = "Hogtie.assets.hogtie.htm";
 
         internal static ManualLogSource Logger;
-        /// <summary>The hogtie's registration with RestraintHub (ring entry, selection, F).</summary>
-        internal static Restraint Entry;
+        /// <summary>Being hogtied, registered with RestraintHub (worn list, selection, F; missions' <c>RtHub_Apply("Hogtie")</c>).</summary>
+        internal static Wearable Entry;
+        /// <summary>The device as a placeable: placed from the hub's panel, "F Hogtie" at it puts her in (<see cref="Entry"/>).</summary>
+        internal static Placeable Device;
         public static ConfigEntry<float> ClearanceCm, AnkleOnShin, ArchDegrees, MetalShade, AttemptSeconds, SuccessChance, CameraHeight;
         public static ConfigEntry<int> DebugDisable;
         public static ConfigEntry<string> RingLabel;
@@ -29,7 +31,7 @@ namespace Hogtie
         public override void Load()
         {
             Logger = Log;
-            RingLabel = Config.Bind("General", "RingLabel", "Hogtie", "Name of the ring menu entry.");
+            RingLabel = Config.Bind("General", "RingLabel", "Hogtie", "Name in the restraint panel, at the device (F) and in the worn list.");
             AttemptSeconds = Config.Bind("Unlock", "AttemptSeconds", 4.5f, new ConfigDescription(
                 "Seconds of holding the interact key (F) per attempt to struggle free.", new AcceptableValueRange<float>(0.5f, 30f)));
             SuccessChance = Config.Bind("Unlock", "SuccessChance", 1f, new ConfigDescription(
@@ -61,12 +63,10 @@ namespace Hogtie
             }
             ClassInjector.RegisterTypeInIl2Cpp<HogtieController>();
             AddComponent<HogtieController>();
-            Entry = new Restraint
+            Entry = new Wearable
             {
                 Id = "Hogtie",
-                RingValue = HogtieController.RingItemValue,
                 Label = () => RingLabel.Value,
-                ShortcutSaveKey = "Hogtie.Shortcuts",
                 OnLoad = _ => HogtieController.Instance?.OnSaveLoaded(),
                 OnNewGame = () => HogtieController.Instance?.OnSaveLoaded(),
                 Holds = BodyParts.Neck | BodyParts.Arms | BodyParts.Legs | BodyParts.Spot,
@@ -74,13 +74,22 @@ namespace Hogtie
                 // Hogtied: no walking, running, crouching, peeing, pose skills or anything that needs her hands.
                 Blocks = () => RestraintHub.Blocks.Moving | RestraintHub.Blocks.Running | RestraintHub.Blocks.Crouching | RestraintHub.Blocks.Pee
                                | RestraintHub.Blocks.HandActions | RestraintHub.Blocks.PoseSkills,
-                OnChosen = () => HogtieController.Instance?.OnRingChosen(),
                 PutOn = () => HogtieController.Instance == null ? "not ready" : HogtieController.Instance.PutOn(),
                 CanPutOn = HogtieController.Check,
                 TakeOff = () => HogtieController.Release(),
                 Attempt = () => HogtieController.Instance == null ? 0f : HogtieController.Instance.Machine.Attempt,
             };
-            Hub.Register(Entry);
+            Device = new Placeable
+            {
+                Id = "HogtieDevice",
+                Label = () => RingLabel.Value,
+                FindSpot = HogtieController.FindSpot,
+                Show = HogtieController.ShowPlaced,
+                Hide = HogtieController.HidePlaced,
+                AreaRadius = 0.45f,
+                InUse = Entry, // F at a placed device: PutOn reads Device.UsedAt
+            };
+            Hub.Register(Device);
             Logger.LogInfo("[SFM-ACCEPT] load: " + PluginName + " " + PluginVersion + " ready (" + HogtieController.Model.Parts.Count + " parts)");
         }
 

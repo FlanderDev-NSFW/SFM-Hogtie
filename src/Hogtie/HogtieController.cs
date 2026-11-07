@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using ExposureUnnoticed2.Object3D.Player.Scripts;
@@ -10,6 +11,7 @@ using SfmKit.Game;
 using SfmKit.Pure;
 using UnityEngine;
 using Hogtie.Logic;
+using RestraintHub;
 
 namespace Hogtie
 {
@@ -38,8 +40,8 @@ namespace Hogtie
         private System.Numerics.Vector3 _viewFrom;
         private GameObject _viewLight;
 
-        // Lock state. The ring entry, number shortcuts, F routing and the input blocking are RestraintHub's (Plugin.Entry).
-        public const int RingItemValue = 9600; // registry: RestraintHub docs "Ring value registry"
+        // Lock state. The panel, the device's "F Hogtie", F routing and the input blocking are RestraintHub's (Plugin.Entry,
+        // Plugin.Device).
         internal readonly LockMachine Machine = new LockMachine();
         private static int _failures;
 
@@ -87,20 +89,13 @@ namespace Hogtie
             }
         }
 
-        /// <summary>The ring entry or a number key, when she is free and nothing worn holds the same parts (the hub checked).</summary>
-        [HideFromIl2Cpp]
-        internal void OnRingChosen()
-        {
-            string why = PutOn();
-            if (why != null) GameUi.Message("Can't use the hogtie here: " + why);
-        }
-
-        /// <summary>Hogtie her where she stands (the ring entry, or a mission through RestraintHub): null when it is closing, else
-        /// why not.</summary>
+        /// <summary>Hogtie her: in the placed device whose "F Hogtie" was pressed (RestraintHub sets Device.UsedAt), else where she
+        /// stands (a mission through RestraintHub). Null when it is closing, else why not.</summary>
         [HideFromIl2Cpp]
         internal string PutOn()
         {
-            string result = Lock(false);
+            var at = Plugin.Device.UsedAt;
+            string result = at != null ? Lock(false, false, at) : Lock(false);
             if (!_locked) return Reason(result);
             GameUi.PlaySe(InGameSoundManager.SeType.CommonEquip);
             return null;
@@ -198,6 +193,8 @@ namespace Hogtie
             if (_preCull != null && Camera.onPreCull != null)
                 Camera.onPreCull = Il2CppSystem.Delegate.Remove(Camera.onPreCull, _preCull)?.Cast<Camera.CameraCallback>();
             _rig?.Destroy();
+            foreach (var rig in _placed.Values) rig.Destroy();
+            _placed.Clear();
             _fitter.Destroy();
             if (Instance == this) Instance = null;
         }
@@ -216,15 +213,16 @@ namespace Hogtie
         private Vector3 _camTargetLocal;
         private IntPtr _lockedPlayer;
 
-        /// <summary>Hogtie her where she stands (diagnostics; players use the ring entry).</summary>
+        /// <summary>Hogtie her where she stands (diagnostics; players place the device from the hub's panel).</summary>
         public static string LockHere() => Lock(false);
 
         /// <summary>Diagnostics: lock even where <see cref="LockHere"/> would refuse the spot (the reason is still reported).</summary>
         public static string LockForced() => Lock(true);
 
-        /// <summary>Hogtie her where she stands; <paramref name="check"/>: only find out whether it would work ("ok").</summary>
+        /// <summary>Hogtie her where she stands, or in the placed device <paramref name="at"/>; <paramref name="check"/>: only find
+        /// out whether it would work ("ok").</summary>
         [HideFromIl2Cpp]
-        private static string Lock(bool force, bool check = false)
+        private static string Lock(bool force, bool check = false, Placed at = null)
         {
             try
             {
@@ -237,7 +235,9 @@ namespace Hogtie
                 var prm = Params();
                 var layout = HogtiePose.Layout(Model, body, prm);
                 if (layout.Problem != null) return "refused: " + layout.Problem;
-                var spot = HogtiePlacer.Find(player, Model, layout, force);
+                // A placed device was checked when it was placed: her body goes where it is.
+                var spot = at != null ? new HogtiePlacer.Spot { Ok = true, Frame = FrameAt(at.Position, at.Rotation, layout), Floor = "placed device" }
+                                      : HogtiePlacer.Find(player, Model, layout, force);
                 c._spot = spot;
                 c._fit = "scale " + F(layout.Scale) + ", ankle bar " + F(layout.AnkleBarRaise * layout.Scale) + " m, shins lean "
                          + F(layout.ShinLean * Mathf.Rad2Deg) + " deg (ankle cuffs turned " + F(layout.AnkleTilt * Mathf.Rad2Deg) + "), belly "
@@ -263,6 +263,8 @@ namespace Hogtie
                 c._rig.Place(spot.Frame, layout);
                 c._rig.SetShade(Plugin.MetalShade.Value);
                 c._rig.SetVisible(true);
+                c._inPlaced = at;
+                if (at != null && c._placed.TryGetValue(at, out var empty)) empty.SetVisible(false); // the fitted rig takes its place
                 // Her root stands on the floor under her hips, facing where her head is (the camera and the game follow it).
                 var hips = spot.Frame.Point(new System.Numerics.Vector3(0f, layout.Hips.Y, 0f));
                 c._rootAt = HogtiePlacer.U(hips);
@@ -292,6 +294,8 @@ namespace Hogtie
             HogtiePoser.ForgetDrawn();
             c.Machine.Reset();
             c._rig?.SetVisible(false);
+            if (c._inPlaced != null && c._placed.TryGetValue(c._inPlaced, out var empty)) empty.SetVisible(true);
+            c._inPlaced = null;
             Plugin.Logger.LogInfo("[SFM-ACCEPT] release: free");
             return "released";
         }
@@ -304,6 +308,72 @@ namespace Hogtie
             var at = (_layout.Hips + _layout.Neck) / 2f;
             float top = Math.Max(Math.Max(_layout.Hips.Z, _layout.Chest.Z), _layout.Neck.Z);
             _camTarget.position = HogtiePlacer.U(_spot.Frame.Point(new System.Numerics.Vector3(0f, at.Y, top + Plugin.CameraHeight.Value)));
+        }
+
+        // --- the device as a placeable (RestraintHub keeps the placed ones, their map and the save) ---------------------------
+
+        /// <summary>How far in front of her feet a placed device's hips point goes (before 2.0 she lay down where she stood).</summary>
+        private const float PlaceAhead = 1.1f;
+        private readonly Dictionary<Placed, HogtieRig> _placed = new Dictionary<Placed, HogtieRig>();
+        private Placed _inPlaced;
+
+        /// <summary>The panel's "Hogtie": the device on the floor in front of her, its head end away from her. Its pose is where
+        /// her root will be (the hips' floor point, facing the way her head goes).</summary>
+        internal static PlaceSpot FindSpot()
+        {
+            var player = PlayerController.Instance;
+            if (Instance == null || player == null || player.Pca == null || player.Pca.Animator == null) return PlaceSpot.No("not ready");
+            if (!LayoutNow(player.Pca.Animator, out var layout, out string problem)) return PlaceSpot.No(problem);
+            var spot = HogtiePlacer.Find(player, Model, layout, false, PlaceAhead);
+            Plugin.Logger.LogInfo("[SFM-ACCEPT] place: " + (spot.Ok ? "ok" : "refused: " + spot.Reason) + " (floor '" + spot.Floor + "')");
+            if (!spot.Ok) return PlaceSpot.No(spot.Reason);
+            var hips = spot.Frame.Point(new System.Numerics.Vector3(0f, layout.Hips.Y, 0f));
+            return new PlaceSpot { Position = HogtiePlacer.U(hips), Rotation = Quaternion.LookRotation(-HogtiePlacer.U(spot.Frame.Back), Vector3.up) };
+        }
+
+        /// <summary>A placed device shown (placed, or its map loaded): the device, sized for her, empty.</summary>
+        internal static void ShowPlaced(Placed placed)
+        {
+            var c = Instance;
+            var anim = PlayerController.Instance?.Pca?.Animator;
+            if (c == null || anim == null) return;
+            if (!LayoutNow(anim, out var layout, out string problem))
+            {
+                Plugin.Logger.LogWarning("placed hogtie not shown: " + problem);
+                return;
+            }
+            var rig = new HogtieRig(Model);
+            rig.Build(anim.gameObject.layer, placed.Root);
+            rig.Place(FrameAt(placed.Position, placed.Rotation, layout), layout);
+            rig.SetShade(Plugin.MetalShade.Value);
+            rig.SetVisible(true);
+            c._placed[placed] = rig;
+        }
+
+        internal static void HidePlaced(Placed placed)
+        {
+            var c = Instance;
+            if (c == null || !c._placed.TryGetValue(placed, out var rig)) return;
+            rig.Destroy();
+            c._placed.Remove(placed);
+        }
+
+        /// <summary>The device frame for a root pose (hips' floor point, facing the way her head goes) and her layout.</summary>
+        private static DeviceFrame FrameAt(Vector3 rootAt, Quaternion rootRot, HogtieLayout layout)
+        {
+            var back = System.Numerics.Vector3.Normalize(HogtiePlacer.N(-(rootRot * Vector3.forward)));
+            var origin = HogtiePlacer.N(rootAt) - back * layout.Hips.Y;
+            return new DeviceFrame(origin, back, System.Numerics.Vector3.UnitY);
+        }
+
+        [HideFromIl2Cpp]
+        private static bool LayoutNow(Animator anim, out HogtieLayout layout, out string problem)
+        {
+            layout = null;
+            if (!HogtiePoser.Measure(anim, out BodyDims body, out problem)) return false;
+            layout = HogtiePose.Layout(Model, body, Params());
+            problem = layout.Problem;
+            return problem == null;
         }
 
         [HideFromIl2Cpp]

@@ -1,4 +1,4 @@
-# Hogtie 0.2.0
+# Hogtie 2.0.0
 
 A hogtie device for **Secret Flasher Manaka**: she hangs face down in a floor-standing frame, back arched. A collar holds her
 head up, her arms are cuffed behind her along the bar, and her ankles are pulled up to her hands at the post. The device is fitted to her
@@ -9,16 +9,18 @@ Model: ["Hogite Device"](https://smutba.se/project/7771b7b3-178b-4a89-816c-43dd0
 ## Requirements
 - Secret Flasher Manaka (tested with v1.1.3)
 - BepInEx 6 for IL2CPP (tested with build 738)
-- **RestraintHub 1.1.0** or newer
+- **RestraintHub 2.0.0** or newer (2.x)
 
 ## Install
 Extract the zip into the game folder (the folder with `SecretFlasherManaka.exe`). You get `BepInEx/plugins/Hogtie/`.
 
 ## How to use
-Stand on open, level ground, facing where her head should go. Hold a ring key (e.g. `1`), page with `Z` / `X` to the restraint
-page and click **Hogtie**. If there is no room (a wall, furniture, steps), a message says why. Hold `F` to struggle free.
+Stand on open, level ground and face where her head should go. Open the restraint panel with `U` and click **Hogtie** (in
+Placeables): the device is put on the floor in front of her. If there is no room (a wall, furniture, steps), a message says why.
+Walk to it and press `F` to get in; hold `F` to struggle free. The device stays there (also in the save) until you pick it up in
+the panel ("Pick up: Hogtie"); one per map.
 
-Missions (Custom Missions v2) can put it on and lock it through RestraintHub: `RtHub_CanApply("Hogtie")` tells whether there is room, `RtHub_Apply("Hogtie")` - see [Missions.md](https://github.com/FlanderDev-NSFW/SFM-RestraintHub/blob/main/docs/Missions.md).
+Missions (Custom Missions v2) can put it on (where she stands) and lock it through RestraintHub: `RtHub_CanApply("Hogtie")` tells whether there is room, `RtHub_Apply("Hogtie")` - see [Missions.md](https://github.com/FlanderDev-NSFW/SFM-RestraintHub/blob/main/docs/Missions.md).
 
 ## Settings
 `BepInEx/config/FlanderDev.SFM.Hogtie.cfg` (created on the first start). Most useful:
@@ -32,7 +34,7 @@ Missions (Custom Missions v2) can put it on and lock it through RestraintHub: `R
 | Unlock.SuccessChance | 1 | chance that struggling frees her (1 = first try) |
 
 ## Good to know
-- Being hogtied is not saved: after loading she is free.
+- Being hogtied is not saved: after loading she is free (a placed device stays).
 - Clothes are not measured: wide skirts and boots can hide the cuffs or show through the device.
 - The post stands between her thighs.
 

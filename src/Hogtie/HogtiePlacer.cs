@@ -22,14 +22,15 @@ namespace Hogtie
 
         private const float FloorTolerance = 0.04f; // m up or down from her feet
 
-        public static Spot Find(PlayerController player, HogtieModel m, HogtieLayout o, bool force)
+        /// <summary>The device for her: its hips point over her feet, or <paramref name="ahead"/> metres in front of them.</summary>
+        public static Spot Find(PlayerController player, HogtieModel m, HogtieLayout o, bool force, float ahead = 0f)
         {
             var spot = new Spot();
             Transform pt = player.transform;
             Vector3 up = Vector3.up;
             Vector3 forward = Vector3.ProjectOnPlane(pt.forward, up).normalized;
             float floorY = pt.position.y;
-            Vector3 feet = pt.position;
+            Vector3 feet = pt.position + forward * ahead;
             // Device origin: the hips' floor point over her feet.
             var probe = new DeviceFrame(N(feet), N(-forward), N(up));
             NVector3 origin = probe.Point(new NVector3(-o.Hips.X, -o.Hips.Y, 0f));
